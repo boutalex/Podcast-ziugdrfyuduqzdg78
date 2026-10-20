@@ -27,15 +27,19 @@ FEEDS = {
 }
 
 
+MODELES = [MODEL, "gemini-2.5-flash", "gemini-flash-lite-latest"]
+
+
 def ask(prompt: str) -> str:
-    """Appel Gemini avec réessais (le quota gratuit renvoie parfois des 429)."""
+    """Appel Gemini avec réessais et modèles de secours (503 = surcharge, 429 = quota)."""
     client = genai.Client(api_key=os.environ["GEMINI_API_KEY"])
-    for i in range(5):
+    for i in range(6):
+        modele = MODELES[i % len(MODELES)]
         try:
-            return client.models.generate_content(model=MODEL, contents=prompt).text
+            return client.models.generate_content(model=modele, contents=prompt).text
         except Exception as e:
-            print(f"Gemini : erreur ({e}), nouvel essai...")
-            time.sleep(20 * (i + 1))
+            print(f"Gemini ({modele}) : erreur ({e}), nouvel essai...")
+            time.sleep(15 * (i + 1))
     raise RuntimeError("Gemini indisponible")
 
 
